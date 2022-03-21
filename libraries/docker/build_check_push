@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+DOCKER_FILE_LOCATION=$1
+docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
+cd ${DOCKER_FILE_LOCATION}
+if docker pull ${docker_org_name}/${image}:${image_tag} > /dev/null; then
+  log_it "There is a docker image for this tag, pushing image now will break the validator node. Please increment version."
+else
+  docker build -t ${docker_org_name}/${image}:${image_tag} .
+  docker push ${docker_org_name}/${image}:${image_tag}
+fi

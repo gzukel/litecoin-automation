@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+export OUTPUT_FILE=$2
+export INPUT_FILE=$1
+python manifests/litecoin/libraries/utilities/template_engine.py

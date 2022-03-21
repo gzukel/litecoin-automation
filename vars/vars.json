@@ -1,0 +1,22 @@
+{
+    "image": "litecoin",
+    "docker_org_name": "the name of your docker organization",
+    "kubernetes_cluster_name": "the name of your eks cluster",
+    "kubernetes_namespace": "litecoin",
+    "DOCKER_EMAIL": "the email the pat you are setting up in secrets is tied too",
+    "DOCKER_HOST_URL": "https://index.docker.io/v1/",
+    "docker_pull_secret": "litecoin-docker-secret",
+    "app_name": "litecoin",
+    "OUTPUT_FILE": "manifests/litecoin/deployment.yaml",
+    "INPUT_FILE": "manifests/litecoin/deployment.yaml.template",
+    "replicas": "1",
+    "termination_grace_period_seconds": "10",
+    "access_mode": "ReadWriteOnce",
+    "storage_class": "gp2",
+    "storage_size": "50Gi"
+}
+
+
+
+
+

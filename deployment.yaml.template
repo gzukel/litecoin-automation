@@ -1,0 +1,36 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: -=app_name=-
+spec:
+  selector:
+    matchLabels:
+      app: -=app_name=-
+  serviceName: "-=app_name=-"
+  replicas: -=replicas=-
+  template:
+    metadata:
+      labels:
+        app: -=app_name=-
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      terminationGracePeriodSeconds: -=termination_grace_period_seconds=-
+      containers:
+      - name: -=app_name=-
+        image: -=docker_org_name=-/-=image=-:-=image_tag=-
+        volumeMounts:
+        - name: -=app_name=-
+          mountPath: /home/litecoinUser/lite-data/
+  volumeClaimTemplates:
+  - metadata:
+      name: -=app_name=-
+    spec:
+      accessModes: [ "-=access_mode=-" ]
+      storageClassName: "-=storage_class=-"
+      resources:
+        requests:
+          storage: -=storage_size=-

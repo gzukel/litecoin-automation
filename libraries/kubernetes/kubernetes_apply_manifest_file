@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+NAMESPACE=$1
+MANIFEST_FILELOCATION=$2
+
+kubectl apply -f ${MANIFEST_FILELOCATION} -n ${NAMESPACE}

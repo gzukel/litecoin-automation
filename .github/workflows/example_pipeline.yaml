@@ -1,0 +1,98 @@
+name: "Kubernetes: Deploy Litecoin"
+
+on:
+  workflow_dispatch:
+    inputs:
+      docker_image_tag:
+        description: The docker image tag you want to use.
+        required: true
+        default: v1.0.0
+
+jobs:
+  deploy_litecoin:
+    name: "Deploy litecoin"
+    runs-on: ${{ matrix.os }}
+    env:
+      image_tag: "${{ github.event.inputs.docker_image_tag }}"
+
+    strategy:
+      matrix:
+        os: [ 'ubuntu-latest' ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+
+      - name: "Set Build Persistent Variables From Vars File"
+        shell: bash
+        run: |
+          source libraries/utilities/set_persistent_library_path
+          log_it "Set Persistent Environment Variables From Vars.Json"
+          export vars_file_location=vars/vars.json
+          python libraries/utilities/set_persistent_env_vars.py
+
+      - name: "Use AWS CLI to pull K8S Kubeconfig"
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          AWS_DEFAULT_REGION: "${{ secrets.AWS_DEFAULT_REGION }}"
+        run: |
+          log_it "Install AWS CLI using pip"
+          install_aws_cli
+
+          log_it "Use AWSCLI to pull down the Kubernetes Config"
+          get_kubernetes_config
+
+      - name: "Login, Check, Build and Push if no Version Already Exist in Docker Repo"
+        shell: bash
+        env:
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+        run: |
+          set +x
+          log_it "Check if Docker Image Exists. If Not: Build and Push"
+          log_it "When porting, you will change the directory path passed to the below script to your docker file location in manifests/app_name directory"
+          build_check_push "manifests/litecoin"
+
+      - name: "Docker: Image Scan"
+        shell: bash
+        run: |
+          set +x
+          log_it "Scan Docker Image, this will fail the pipeline if the image scan doesn't pass."
+          curl -s https://ci-tools.anchore.io/inline_scan-v0.6.0 | bash -s -- -p -f ${docker_org_name}/${image}:${image_tag}
+
+      - name: "Create namespace & Docker Pull Secret"
+        shell: bash
+        env:
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          AWS_DEFAULT_REGION: "${{ secrets.AWS_DEFAULT_REGION }}"
+        run: |
+          set +x
+
+          log_it "Create Kubernetes Namespace ${kubernetes_namespace} if it doesn't exist."
+          kubernetes_create_namespace "${kubernetes_namespace}"
+
+          log_it "Create or Delete and Re-Create Docker Secret"
+          kubernetes_create_docker_secret "${kubernetes_namespace}" "${DOCKER_HOST_URL}" "${DOCKER_USERNAME}" "${DOCKER_PASSWORD}" "${DOCKER_EMAIL}" "${docker_pull_secret}"
+
+      - name: "Deploy Kubernetes Manifest"
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          AWS_DEFAULT_REGION: "${{ secrets.AWS_DEFAULT_REGION }}"
+        run: |
+          set +x
+
+          log_it "Execute the template replacement library to match env vars to syntax -=envvar_name=-"
+          execute_template_replacement_on_file "${INPUT_FILE}" "${OUTPUT_FILE}"
+
+          log_it "Apply Kubernetes Manifest"
+          kubernetes_apply_manifest_file ${kubernetes_namespace} ${OUTPUT_FILE}

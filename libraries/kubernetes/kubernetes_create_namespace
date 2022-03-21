@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+NAMESPACE=$1
+kubectl create namespace ${1} || echo "Namespace Exists"
