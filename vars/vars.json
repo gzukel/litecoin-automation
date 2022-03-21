@@ -13,7 +13,11 @@
     "termination_grace_period_seconds": "10",
     "access_mode": "ReadWriteOnce",
     "storage_class": "gp2",
-    "storage_size": "50Gi"
+    "storage_size": "50Gi",
+    "memory_request": "1Gi",
+    "cpu_request": "1",
+    "memory_limit": "16Gi",
+    "cpu_limit": "4"
 }
 
 
