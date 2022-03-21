@@ -2,7 +2,7 @@
 
 Author: Grant Zukel
 
-Development Time: 2.5 Hours
+Development Time: 3.5 Hours
 
 Date: 3/20/2022
 
@@ -26,9 +26,13 @@ This also maps a vars.json file to environment variables in the github actions p
 
 This setup uses a templated statefulset file that gets template replaced when it is run in the pipeline by matching environment variables to the `-=ENV_VARNAME=-` syntax and do a 1 for 1 variable replace.
 
+There are a few more things you would want to do before making this production worthy.
+
 #### Disclaimer
 
 The Libraries used in this automation we're pre-made libraries written by STUDENTS of Grant Zukel @ iDevOps.io as re-useable pipeline libraries.
+
+Everything else was written by Grant from scratch besides the use of the K8S documentation on stateful sets just to get the template baseline which was then variablized to fit the template pattern `-=env_var_name=-` which will be matched to environment variables and template replaced.
 
 ## Steps to setup Github Action Pipeline:
 
@@ -48,6 +52,22 @@ Goto settings, secrets, actions and create the following secrets in your git rep
 
 Edit this file and put in your information to configure the docker repo, image name, and values that you want. These all get mapped to environment variables via the pre-built libraries. 
 
+---
+
+## Also Included GitLab CI:
+
+I have also included a rudimentary GitLab CI pipeline as well. While this isn't quite as far developed as the Github Action Pipeline I thought I would include it as well.
+
+The pipeline is in the gitlab_pipeline folder under the name: gitlab-pipeline.yml
+
+This pipeline just requires you to set up some project level environment variables as secrets.
+
+ - DOCKER_USERNAME: "Docker Username - this is where you are going to push the docker image and what user gets used in the k8s secret."
+ - DOCKER_PASSWORD: "Docker Password(pat) - this is a docker PAT token that will be used to login to push the image and it will also be used to create the k8s secret to pull image."
+ - AWS_ACCESS_KEY_ID: "AWS Access Key - This is used to pull eks config."
+ - AWS_SECRET_ACCESS_KEY: "AWS Secret Key - This is the key used to pull eks config."
+ - AWS_DEFAULT_REGION: "region the eks cluster is in."
+ - 
 ___
 
 ## Example Output From K8S:
@@ -227,3 +247,39 @@ Here is the log output of the container you should be looking for when it starts
     2022-03-21T03:58:39Z New outbound peer connected: version: 70015, blocks=2231268, peer=5
     2022-03-21T03:58:41Z New outbound peer connected: version: 70015, blocks=2231268, peer=6
     2022-03-21T03:58:42Z New outbound peer connected: version: 70015, blocks=2231268, peer=7
+
+
+### Anchore Scan Output
+
+        Policy Evaluation - litecoin:v2.0.4
+    -----------------------------------------------------------
+    Image Digest: sha256:5afd74c90f8d158f016a7b7c0a3511be229f93394edc822793c57f45a8c95a0d
+    Full Tag: localhost:5000/litecoin:v2.0.4
+    Image ID: ef7ba03f7d5325ed80443e56e2456d458102e4ad6f5655b77eb23c60f10d0a49
+    Status: pass
+    Last Eval: 2022-03-21T05:34:06Z
+    Policy ID: 2c53a13c-1765-11e8-82ef-23527761d060
+    Final Action: warn
+    Final Action Reason: policy_evaluation
+    Gate                   Trigger                Detail                                                                                                                                                         Status        
+    dockerfile             instruction            Dockerfile directive 'HEALTHCHECK' not found, matching condition 'not_exists' check                                                                            warn          
+    vulnerabilities        stale_feed_data        The vulnerability feed for this image distro is older than MAXAGE (2) days                                                                                     warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - krb5-locales (CVE-2018-20217 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20217)            warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - libgssapi-krb5-2 (CVE-2018-20217 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20217)        warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - libk5crypto3 (CVE-2018-20217 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20217)            warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - libkrb5-3 (CVE-2018-20217 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20217)               warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - libkrb5support0 (CVE-2018-20217 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20217)         warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - libpcre3 (CVE-2019-20838 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-20838)                warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - libpcre3 (CVE-2020-14155 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-14155)                warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - libsqlite3-0 (CVE-2020-9794 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-9794)              warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - libsystemd0 (CVE-2018-20839 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20839)             warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - libudev1 (CVE-2018-20839 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20839)                warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - perl-base (CVE-2020-10543 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-10543)               warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - perl-base (CVE-2020-10878 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-10878)               warn          
+    vulnerabilities        package                MEDIUM Vulnerability found in os package type (dpkg) - perl-base (CVE-2020-12723 - http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-12723)               warn          
+    Image Digest: sha256:5afd74c90f8d158f016a7b7c0a3511be229f93394edc822793c57f45a8c95a0d
+    Full Tag: localhost:5000/litecoin:v2.0.4
+    Status: pass
+    Last Eval: 2022-03-21T05:34:06Z
+    Policy ID: 2c53a13c-1765-11e8-82ef-23527761d060
+    Cleaning up docker container: 8355-inline-anchore-engine

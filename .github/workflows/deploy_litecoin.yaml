@@ -96,3 +96,33 @@ jobs:
 
           log_it "Apply Kubernetes Manifest"
           kubernetes_apply_manifest_file ${kubernetes_namespace} ${OUTPUT_FILE}
+
+
+      - name: "Wait for pod 0 to come up."
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          AWS_DEFAULT_REGION: "${{ secrets.AWS_DEFAULT_REGION }}"
+        run: |
+          set +x
+          current_count=0
+          max_count=50
+          while true
+          do
+            echo "${current_count} of ${max_count}"
+            kube_pod_status=$(kubectl get pods -n litecoin | grep -v NAME | cut -d ' ' -f 9 | tr -d '\n')
+            if [ "${kube_pod_status}" = "Running" ]; then
+              echo "Pod 0 Running"
+              break
+            else
+              echo "Pod not running yet, waiting for pod to be running."
+              echo "Current Status: ${kube_pod_status}"
+              ((current_count=current_count+1))
+              if [ "${current_count}" = "${max_count}" ]; then
+                echo "Reached Max Count Exiting."
+                break
+              fi
+              sleep 5
+            fi
+          done

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#this take the location of a docker file and will try to pull the docker file based on the pattern of variables below
+#these variables are setup as environment variables besides the docker file location being passed in
+#this will pull the image and not build if it can pull and build if it can't because it doesn't exist
 DOCKER_FILE_LOCATION=$1
 docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
 cd ${DOCKER_FILE_LOCATION}

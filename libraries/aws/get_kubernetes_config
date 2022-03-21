@@ -1,2 +1,4 @@
 #!/usr/bin/env bash
+# kubernetes_cluster_name - this is set as env var in pipeline
+# AWS_DEFAULT_REGION - this is setup for aws cli by default to make authentication work.
 aws eks update-kubeconfig --name ${kubernetes_cluster_name} --region ${AWS_DEFAULT_REGION}
